@@ -19,3 +19,7 @@ hs_err_pid*
 target
 .gradle
 build
+
+/frontend/.vscode
+/frontend/node_modules
+/frontend/.angular
