@@ -15,13 +15,11 @@ package com.ion.barclaysapi.client.model;
 
 import java.util.Objects;
 import java.util.Arrays;
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonTypeName;
-import com.fasterxml.jackson.annotation.JsonValue;
+
+import com.fasterxml.jackson.annotation.*;
+
 import java.time.OffsetDateTime;
-import com.fasterxml.jackson.annotation.JsonPropertyOrder;
+
 import com.fasterxml.jackson.annotation.JsonTypeName;
 
 /**
@@ -51,7 +49,7 @@ public class TradeBusinessEventsQueryRequest {
   }
 
   public TradeBusinessEventsQueryRequest tradeId(String tradeId) {
-    
+
     this.tradeId = tradeId;
     return this;
   }
@@ -77,7 +75,7 @@ public class TradeBusinessEventsQueryRequest {
 
 
   public TradeBusinessEventsQueryRequest fmi(String fmi) {
-    
+
     this.fmi = fmi;
     return this;
   }
@@ -103,7 +101,7 @@ public class TradeBusinessEventsQueryRequest {
 
 
   public TradeBusinessEventsQueryRequest fromDate(OffsetDateTime fromDate) {
-    
+
     this.fromDate = fromDate;
     return this;
   }
@@ -115,7 +113,7 @@ public class TradeBusinessEventsQueryRequest {
   @javax.annotation.Nonnull
   @JsonProperty(JSON_PROPERTY_FROM_DATE)
   @JsonInclude(value = JsonInclude.Include.ALWAYS)
-
+  @JsonFormat(shape = JsonFormat.Shape.STRING /*pattern = "uuuu-MM-dd'T'HH:mm:ss.SSSX")*/)
   public OffsetDateTime getFromDate() {
     return fromDate;
   }
@@ -129,7 +127,7 @@ public class TradeBusinessEventsQueryRequest {
 
 
   public TradeBusinessEventsQueryRequest toDate(OffsetDateTime toDate) {
-    
+
     this.toDate = toDate;
     return this;
   }
@@ -141,7 +139,7 @@ public class TradeBusinessEventsQueryRequest {
   @javax.annotation.Nonnull
   @JsonProperty(JSON_PROPERTY_TO_DATE)
   @JsonInclude(value = JsonInclude.Include.ALWAYS)
-
+  @JsonFormat(shape = JsonFormat.Shape.STRING /*pattern = "uuuu-MM-dd'T'HH:mm:ss.SSSX")*/)
   public OffsetDateTime getToDate() {
     return toDate;
   }
