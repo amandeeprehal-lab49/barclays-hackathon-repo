@@ -46,7 +46,7 @@ public class RepoTradeExecutionSubmissionRequest {
   public static final String JSON_PROPERTY_SELLER = "seller";
   private RepoSeller seller;
 
-  public static final String JSON_PROPERTY_TRADE_DETAILS = "tradeDetails";
+  public static final String JSON_PROPERTY_TRADE_DETAILS = "trade_details";
   private RepoTradeDetails tradeDetails;
 
   public RepoTradeExecutionSubmissionRequest() {
