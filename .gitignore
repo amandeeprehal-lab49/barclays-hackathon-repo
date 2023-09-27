@@ -23,3 +23,4 @@ build
 /frontend/.vscode
 /frontend/node_modules
 /frontend/.angular
+.DS_Store
