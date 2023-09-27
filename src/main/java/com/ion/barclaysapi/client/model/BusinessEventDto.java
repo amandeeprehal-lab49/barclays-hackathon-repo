@@ -13,16 +13,13 @@
 
 package com.ion.barclaysapi.client.model;
 
+import java.time.OffsetDateTime;
 import java.util.Objects;
-import java.util.Arrays;
+
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonTypeName;
-import com.fasterxml.jackson.annotation.JsonValue;
-import java.time.OffsetDateTime;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
-import com.fasterxml.jackson.annotation.JsonTypeName;
 
 /**
  * BusinessEventDto
@@ -63,7 +60,6 @@ public class BusinessEventDto {
   @javax.annotation.Nullable
   @JsonProperty(JSON_PROPERTY_BUSINESS_EVENT_NAME)
   @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
-
   public String getBusinessEventName() {
     return businessEventName;
   }
@@ -141,7 +137,7 @@ public class BusinessEventDto {
   @javax.annotation.Nullable
   @JsonProperty(JSON_PROPERTY_EVENT_CREATED_DATE)
   @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
-
+  @JsonFormat(shape = JsonFormat.Shape.STRING )
   public OffsetDateTime getEventCreatedDate() {
     return eventCreatedDate;
   }
