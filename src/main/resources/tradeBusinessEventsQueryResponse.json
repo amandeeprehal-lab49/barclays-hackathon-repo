@@ -1,0 +1,999 @@
+{
+  "tradeMatchingService": [
+    {
+      "tradeId": "UC1GQN1435RKX0",
+      "businessEvents": [
+        {
+          "businessEventName": "TradeContractFormedEvent",
+          "businessEventSeq": 1,
+          "businessEventData": {
+            "effectiveDate": "2023-10-02",
+            "eventDate": "2023-10-02",
+            "instruction": [
+              {
+                "before": {
+                  "value": {
+                    "meta": {
+                      "globalKey": "df2d6b53"
+                    },
+                    "state": {
+                      "positionState": "EXECUTED"
+                    },
+                    "trade": {
+                      "party": [
+                        {
+                          "account": {
+                            "accountName": {
+                              "value": "CLIENT01-ACCOUNT02"
+                            }
+                          },
+                          "meta": {
+                            "globalKey": "92814e34"
+                          },
+                          "name": {
+                            "value": "CLIENT01"
+                          },
+                          "partyId": [
+                            {
+                              "identifier": {
+                                "value": "CLIENT01-ACCOUNT02"
+                              }
+                            }
+                          ]
+                        },
+                        {
+                          "account": {
+                            "accountName": {
+                              "value": "DEALER02-ACCOUNT01"
+                            }
+                          },
+                          "meta": {
+                            "globalKey": "3ef34be8"
+                          },
+                          "name": {
+                            "value": "DEALER02"
+                          },
+                          "partyId": [
+                            {
+                              "identifier": {
+                                "value": "DEALER02-LEI01"
+                              }
+                            }
+                          ]
+                        }
+                      ],
+                      "partyRole": [
+                        {
+                          "partyReference": {
+                            "value": {
+                              "account": {
+                                "accountName": {
+                                  "value": "CLIENT01-ACCOUNT02"
+                                }
+                              },
+                              "meta": {
+                                "globalKey": "92814e34"
+                              },
+                              "name": {
+                                "value": "CLIENT01"
+                              },
+                              "partyId": [
+                                {
+                                  "identifier": {
+                                    "value": "CLIENT01-ACCOUNT02"
+                                  }
+                                }
+                              ]
+                            }
+                          },
+                          "role": "BUYER"
+                        },
+                        {
+                          "partyReference": {
+                            "value": {
+                              "account": {
+                                "accountName": {
+                                  "value": "DEALER02-ACCOUNT01"
+                                }
+                              },
+                              "meta": {
+                                "globalKey": "3ef34be8"
+                              },
+                              "name": {
+                                "value": "DEALER02"
+                              },
+                              "partyId": [
+                                {
+                                  "identifier": {
+                                    "value": "DEALER02-LEI01"
+                                  }
+                                }
+                              ]
+                            }
+                          },
+                          "role": "SELLER"
+                        }
+                      ],
+                      "tradableProduct": {
+                        "counterparty": [
+                          {
+                            "partyReference": {
+                              "value": {
+                                "account": {
+                                  "accountName": {
+                                    "value": "CLIENT01-ACCOUNT02"
+                                  }
+                                },
+                                "meta": {
+                                  "globalKey": "92814e34"
+                                },
+                                "name": {
+                                  "value": "CLIENT01"
+                                },
+                                "partyId": [
+                                  {
+                                    "identifier": {
+                                      "value": "CLIENT01-ACCOUNT02"
+                                    }
+                                  }
+                                ]
+                              }
+                            },
+                            "role": "PARTY_1"
+                          },
+                          {
+                            "partyReference": {
+                              "value": {
+                                "account": {
+                                  "accountName": {
+                                    "value": "DEALER02-ACCOUNT01"
+                                  }
+                                },
+                                "meta": {
+                                  "globalKey": "3ef34be8"
+                                },
+                                "name": {
+                                  "value": "DEALER02"
+                                },
+                                "partyId": [
+                                  {
+                                    "identifier": {
+                                      "value": "DEALER02-LEI01"
+                                    }
+                                  }
+                                ]
+                              }
+                            },
+                            "role": "PARTY_2"
+                          }
+                        ],
+                        "product": {
+                          "contractualProduct": {
+                            "productTaxonomy": [
+                              {
+                                "source": "OTHER",
+                                "productQualifier": "RepurchaseAgreement"
+                              }
+                            ],
+                            "economicTerms": {
+                              "collateral": {
+                                "collateralPortfolio": [
+                                  {
+                                    "value": {
+                                      "collateralPosition": [
+                                        {
+                                          "product": {
+                                            "contractualProduct": {
+                                              "economicTerms": {
+                                                "payout": {
+                                                  "assetPayout": [
+                                                    {
+                                                      "payerReceiver": {
+                                                        "payer": "PARTY_2",
+                                                        "receiver": "PARTY_1"
+                                                      },
+                                                      "priceQuantity": {
+                                                        "quantitySchedule": {
+                                                          "value": {
+                                                            "unit": {
+                                                              "financialUnit": "CONTRACTUAL_PRODUCT"
+                                                            },
+                                                            "value": 2000000
+                                                          }
+                                                        }
+                                                      },
+                                                      "assetLeg": [
+                                                        {
+                                                          "deliveryMethod": "DELIVERY_VERSUS_PAYMENT",
+                                                          "settlementDate": {
+                                                            "adjustableDate": {
+                                                              "unadjustedDate": "2023-10-02"
+                                                            }
+                                                          }
+                                                        }
+                                                      ],
+                                                      "durationType": {
+                                                        "durationType": "TERM"
+                                                      },
+                                                      "securityInformation": {
+                                                        "security": {
+                                                          "productIdentifier": [
+                                                            {
+                                                              "value": {
+                                                                "identifier": {
+                                                                  "value": "GBTHQ4XCY21"
+                                                                },
+                                                                "source": "ISIN"
+                                                              }
+                                                            }
+                                                          ]
+                                                        }
+                                                      }
+                                                    },
+                                                    {
+                                                      "payerReceiver": {
+                                                        "payer": "PARTY_1",
+                                                        "receiver": "PARTY_2"
+                                                      },
+                                                      "priceQuantity": {
+                                                        "quantitySchedule": {
+                                                          "value": {
+                                                            "unit": {
+                                                              "financialUnit": "CONTRACTUAL_PRODUCT"
+                                                            },
+                                                            "value": 2000000
+                                                          }
+                                                        }
+                                                      },
+                                                      "assetLeg": [
+                                                        {
+                                                          "deliveryMethod": "DELIVERY_VERSUS_PAYMENT",
+                                                          "settlementDate": {
+                                                            "adjustableDate": {
+                                                              "unadjustedDate": "2023-10-03"
+                                                            }
+                                                          }
+                                                        }
+                                                      ],
+                                                      "durationType": {
+                                                        "durationType": "TERM"
+                                                      },
+                                                      "securityInformation": {
+                                                        "security": {
+                                                          "productIdentifier": [
+                                                            {
+                                                              "value": {
+                                                                "identifier": {
+                                                                  "value": "GBTHQ4XCY21"
+                                                                },
+                                                                "source": "ISIN"
+                                                              }
+                                                            }
+                                                          ]
+                                                        }
+                                                      }
+                                                    }
+                                                  ]
+                                                }
+                                              }
+                                            }
+                                          }
+                                        }
+                                      ]
+                                    }
+                                  }
+                                ],
+                                "collateralProvisions": {
+                                  "collateralType": "NON_CASH",
+                                  "eligibleCollateral": [
+                                    {
+                                      "criteria": [
+                                        {
+                                          "treatment": {
+                                            "valuationTreatment": {
+                                              "haircutPercentage": 0.02,
+                                              "marginPercentage": 99.0
+                                            }
+                                          }
+                                        }
+                                      ]
+                                    }
+                                  ]
+                                }
+                              },
+                              "effectiveDate": {
+                                "adjustableDate": {
+                                  "unadjustedDate": "2023-10-02"
+                                }
+                              },
+                              "payout": {
+                                "interestRatePayout": [
+                                  {
+                                    "payerReceiver": {
+                                      "payer": "PARTY_1",
+                                      "receiver": "PARTY_2"
+                                    },
+                                    "principalPayment": {
+                                      "finalPayment": true,
+                                      "initialPayment": true,
+                                      "intermediatePayment": false,
+                                      "principalPaymentSchedule": {
+                                        "finalPrincipalPayment": {
+                                          "payerReceiver": {
+                                            "payer": "PARTY_2",
+                                            "receiver": "PARTY_1"
+                                          },
+                                          "principalAmount": {
+                                            "value": 1940665.81
+                                          },
+                                          "principalPaymentDate": {
+                                            "unadjustedDate": "2023-10-03"
+                                          }
+                                        },
+                                        "initialPrincipalPayment": {
+                                          "payerReceiver": {
+                                            "payer": "PARTY_1",
+                                            "receiver": "PARTY_2"
+                                          },
+                                          "principalAmount": {
+                                            "value": 1940400.0
+                                          },
+                                          "principalPaymentDate": {
+                                            "unadjustedDate": "2023-10-02"
+                                          }
+                                        }
+                                      }
+                                    },
+                                    "calculationPeriodDates": {
+                                      "effectiveDate": {
+                                        "adjustableDate": {
+                                          "unadjustedDate": "2023-10-02"
+                                        }
+                                      },
+                                      "terminationDate": {
+                                        "adjustableDate": {
+                                          "unadjustedDate": "2023-10-03"
+                                        }
+                                      }
+                                    },
+                                    "dayCountFraction": {
+                                      "value": "ACT/360"
+                                    },
+                                    "rateSpecification": {
+                                      "fixedRate": {
+                                        "rateSchedule": {
+                                          "price": {
+                                            "value": {
+                                              "unit": {
+                                                "currency": {
+                                                  "value": "GBP"
+                                                }
+                                              },
+                                              "value": 0.05,
+                                              "perUnitOf": {
+                                                "currency": {
+                                                  "value": "GBP"
+                                                }
+                                              },
+                                              "priceExpression": {
+                                                "priceType": "INTEREST_RATE"
+                                              }
+                                            }
+                                          }
+                                        }
+                                      }
+                                    }
+                                  }
+                                ]
+                              },
+                              "terminationDate": {
+                                "adjustableDate": {
+                                  "unadjustedDate": "2023-10-03"
+                                }
+                              }
+                            }
+                          }
+                        },
+                        "tradeLot": [
+                          {
+                            "priceQuantity": [
+                              {
+                                "meta": {
+                                  "globalKey": "5a8018fd"
+                                },
+                                "price": [
+                                  {
+                                    "value": {
+                                      "unit": {
+                                        "currency": {
+                                          "value": "GBP"
+                                        }
+                                      },
+                                      "value": 0.05,
+                                      "perUnitOf": {
+                                        "currency": {
+                                          "value": "GBP"
+                                        }
+                                      },
+                                      "priceExpression": {
+                                        "priceType": "INTEREST_RATE"
+                                      }
+                                    }
+                                  }
+                                ],
+                                "quantity": [
+                                  {
+                                    "value": {
+                                      "unit": {
+                                        "currency": {
+                                          "value": "GBP"
+                                        }
+                                      },
+                                      "value": 1940400.0
+                                    }
+                                  }
+                                ]
+                              },
+                              {
+                                "meta": {
+                                  "globalKey": "b9ceae52"
+                                },
+                                "observable": {
+                                  "productIdentifier": [
+                                    {
+                                      "value": {
+                                        "identifier": {
+                                          "value": "GBTHQ4XCY21"
+                                        }
+                                      }
+                                    }
+                                  ]
+                                },
+                                "price": [
+                                  {
+                                    "value": {
+                                      "value": 2000000,
+                                      "perUnitOf": {
+                                        "financialUnit": "CONTRACTUAL_PRODUCT"
+                                      },
+                                      "priceExpression": {
+                                        "cleanOrDirty": "DIRTY",
+                                        "priceExpression": "PERCENTAGE_OF_NOTIONAL",
+                                        "priceType": "ASSET_PRICE"
+                                      }
+                                    }
+                                  }
+                                ],
+                                "quantity": [
+                                  {
+                                    "value": {
+                                      "unit": {
+                                        "financialUnit": "CONTRACTUAL_PRODUCT"
+                                      },
+                                      "value": 2000000
+                                    }
+                                  }
+                                ]
+                              }
+                            ]
+                          }
+                        ]
+                      },
+                      "tradeDate": {
+                        "value": "2023-10-02"
+                      },
+                      "tradeIdentifier": [
+                        {
+                          "assignedIdentifier": [
+                            {
+                              "identifier": {
+                                "value": "UC1GQN1435RKX0"
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  }
+                }
+              }
+            ],
+            "intent": "CONTRACT_FORMATION",
+            "after": [
+              {
+                "meta": {
+                  "globalKey": "27fda227"
+                },
+                "state": {
+                  "positionState": "FORMED"
+                },
+                "trade": {
+                  "party": [
+                    {
+                      "account": {
+                        "accountName": {
+                          "value": "CLIENT01-ACCOUNT02"
+                        }
+                      },
+                      "meta": {
+                        "globalKey": "92814e34"
+                      },
+                      "name": {
+                        "value": "CLIENT01"
+                      },
+                      "partyId": [
+                        {
+                          "identifier": {
+                            "value": "CLIENT01-ACCOUNT02"
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "account": {
+                        "accountName": {
+                          "value": "DEALER02-ACCOUNT01"
+                        }
+                      },
+                      "meta": {
+                        "globalKey": "3ef34be8"
+                      },
+                      "name": {
+                        "value": "DEALER02"
+                      },
+                      "partyId": [
+                        {
+                          "identifier": {
+                            "value": "DEALER02-LEI01"
+                          }
+                        }
+                      ]
+                    }
+                  ],
+                  "partyRole": [
+                    {
+                      "partyReference": {
+                        "value": {
+                          "account": {
+                            "accountName": {
+                              "value": "CLIENT01-ACCOUNT02"
+                            }
+                          },
+                          "meta": {
+                            "globalKey": "92814e34"
+                          },
+                          "name": {
+                            "value": "CLIENT01"
+                          },
+                          "partyId": [
+                            {
+                              "identifier": {
+                                "value": "CLIENT01-ACCOUNT02"
+                              }
+                            }
+                          ]
+                        }
+                      },
+                      "role": "BUYER"
+                    },
+                    {
+                      "partyReference": {
+                        "value": {
+                          "account": {
+                            "accountName": {
+                              "value": "DEALER02-ACCOUNT01"
+                            }
+                          },
+                          "meta": {
+                            "globalKey": "3ef34be8"
+                          },
+                          "name": {
+                            "value": "DEALER02"
+                          },
+                          "partyId": [
+                            {
+                              "identifier": {
+                                "value": "DEALER02-LEI01"
+                              }
+                            }
+                          ]
+                        }
+                      },
+                      "role": "SELLER"
+                    }
+                  ],
+                  "tradableProduct": {
+                    "counterparty": [
+                      {
+                        "partyReference": {
+                          "value": {
+                            "account": {
+                              "accountName": {
+                                "value": "CLIENT01-ACCOUNT02"
+                              }
+                            },
+                            "meta": {
+                              "globalKey": "92814e34"
+                            },
+                            "name": {
+                              "value": "CLIENT01"
+                            },
+                            "partyId": [
+                              {
+                                "identifier": {
+                                  "value": "CLIENT01-ACCOUNT02"
+                                }
+                              }
+                            ]
+                          }
+                        },
+                        "role": "PARTY_1"
+                      },
+                      {
+                        "partyReference": {
+                          "value": {
+                            "account": {
+                              "accountName": {
+                                "value": "DEALER02-ACCOUNT01"
+                              }
+                            },
+                            "meta": {
+                              "globalKey": "3ef34be8"
+                            },
+                            "name": {
+                              "value": "DEALER02"
+                            },
+                            "partyId": [
+                              {
+                                "identifier": {
+                                  "value": "DEALER02-LEI01"
+                                }
+                              }
+                            ]
+                          }
+                        },
+                        "role": "PARTY_2"
+                      }
+                    ],
+                    "product": {
+                      "contractualProduct": {
+                        "productTaxonomy": [
+                          {
+                            "source": "OTHER",
+                            "productQualifier": "RepurchaseAgreement"
+                          }
+                        ],
+                        "economicTerms": {
+                          "collateral": {
+                            "collateralPortfolio": [
+                              {
+                                "value": {
+                                  "collateralPosition": [
+                                    {
+                                      "product": {
+                                        "contractualProduct": {
+                                          "economicTerms": {
+                                            "payout": {
+                                              "assetPayout": [
+                                                {
+                                                  "payerReceiver": {
+                                                    "payer": "PARTY_2",
+                                                    "receiver": "PARTY_1"
+                                                  },
+                                                  "priceQuantity": {
+                                                    "quantitySchedule": {
+                                                      "value": {
+                                                        "unit": {
+                                                          "financialUnit": "CONTRACTUAL_PRODUCT"
+                                                        },
+                                                        "value": 2000000
+                                                      }
+                                                    }
+                                                  },
+                                                  "assetLeg": [
+                                                    {
+                                                      "deliveryMethod": "DELIVERY_VERSUS_PAYMENT",
+                                                      "settlementDate": {
+                                                        "adjustableDate": {
+                                                          "unadjustedDate": "2023-10-02"
+                                                        }
+                                                      }
+                                                    }
+                                                  ],
+                                                  "durationType": {
+                                                    "durationType": "TERM"
+                                                  },
+                                                  "securityInformation": {
+                                                    "security": {
+                                                      "productIdentifier": [
+                                                        {
+                                                          "value": {
+                                                            "identifier": {
+                                                              "value": "GBTHQ4XCY21"
+                                                            },
+                                                            "source": "ISIN"
+                                                          }
+                                                        }
+                                                      ]
+                                                    }
+                                                  }
+                                                },
+                                                {
+                                                  "payerReceiver": {
+                                                    "payer": "PARTY_1",
+                                                    "receiver": "PARTY_2"
+                                                  },
+                                                  "priceQuantity": {
+                                                    "quantitySchedule": {
+                                                      "value": {
+                                                        "unit": {
+                                                          "financialUnit": "CONTRACTUAL_PRODUCT"
+                                                        },
+                                                        "value": 2000000
+                                                      }
+                                                    }
+                                                  },
+                                                  "assetLeg": [
+                                                    {
+                                                      "deliveryMethod": "DELIVERY_VERSUS_PAYMENT",
+                                                      "settlementDate": {
+                                                        "adjustableDate": {
+                                                          "unadjustedDate": "2023-10-03"
+                                                        }
+                                                      }
+                                                    }
+                                                  ],
+                                                  "durationType": {
+                                                    "durationType": "TERM"
+                                                  },
+                                                  "securityInformation": {
+                                                    "security": {
+                                                      "productIdentifier": [
+                                                        {
+                                                          "value": {
+                                                            "identifier": {
+                                                              "value": "GBTHQ4XCY21"
+                                                            },
+                                                            "source": "ISIN"
+                                                          }
+                                                        }
+                                                      ]
+                                                    }
+                                                  }
+                                                }
+                                              ]
+                                            }
+                                          }
+                                        }
+                                      }
+                                    }
+                                  ]
+                                }
+                              }
+                            ],
+                            "collateralProvisions": {
+                              "collateralType": "NON_CASH",
+                              "eligibleCollateral": [
+                                {
+                                  "criteria": [
+                                    {
+                                      "treatment": {
+                                        "valuationTreatment": {
+                                          "haircutPercentage": 0.02,
+                                          "marginPercentage": 99.0
+                                        }
+                                      }
+                                    }
+                                  ]
+                                }
+                              ]
+                            }
+                          },
+                          "effectiveDate": {
+                            "adjustableDate": {
+                              "unadjustedDate": "2023-10-02"
+                            }
+                          },
+                          "payout": {
+                            "interestRatePayout": [
+                              {
+                                "payerReceiver": {
+                                  "payer": "PARTY_1",
+                                  "receiver": "PARTY_2"
+                                },
+                                "principalPayment": {
+                                  "finalPayment": true,
+                                  "initialPayment": true,
+                                  "intermediatePayment": false,
+                                  "principalPaymentSchedule": {
+                                    "finalPrincipalPayment": {
+                                      "payerReceiver": {
+                                        "payer": "PARTY_2",
+                                        "receiver": "PARTY_1"
+                                      },
+                                      "principalAmount": {
+                                        "value": 1940665.81
+                                      },
+                                      "principalPaymentDate": {
+                                        "unadjustedDate": "2023-10-03"
+                                      }
+                                    },
+                                    "initialPrincipalPayment": {
+                                      "payerReceiver": {
+                                        "payer": "PARTY_1",
+                                        "receiver": "PARTY_2"
+                                      },
+                                      "principalAmount": {
+                                        "value": 1940400.0
+                                      },
+                                      "principalPaymentDate": {
+                                        "unadjustedDate": "2023-10-02"
+                                      }
+                                    }
+                                  }
+                                },
+                                "calculationPeriodDates": {
+                                  "effectiveDate": {
+                                    "adjustableDate": {
+                                      "unadjustedDate": "2023-10-02"
+                                    }
+                                  },
+                                  "terminationDate": {
+                                    "adjustableDate": {
+                                      "unadjustedDate": "2023-10-03"
+                                    }
+                                  }
+                                },
+                                "dayCountFraction": {
+                                  "value": "ACT/360"
+                                },
+                                "rateSpecification": {
+                                  "fixedRate": {
+                                    "rateSchedule": {
+                                      "price": {
+                                        "value": {
+                                          "unit": {
+                                            "currency": {
+                                              "value": "GBP"
+                                            }
+                                          },
+                                          "value": 0.05,
+                                          "perUnitOf": {
+                                            "currency": {
+                                              "value": "GBP"
+                                            }
+                                          },
+                                          "priceExpression": {
+                                            "priceType": "INTEREST_RATE"
+                                          }
+                                        }
+                                      }
+                                    }
+                                  }
+                                }
+                              }
+                            ]
+                          },
+                          "terminationDate": {
+                            "adjustableDate": {
+                              "unadjustedDate": "2023-10-03"
+                            }
+                          }
+                        }
+                      }
+                    },
+                    "tradeLot": [
+                      {
+                        "priceQuantity": [
+                          {
+                            "meta": {
+                              "globalKey": "5a8018fd"
+                            },
+                            "price": [
+                              {
+                                "value": {
+                                  "unit": {
+                                    "currency": {
+                                      "value": "GBP"
+                                    }
+                                  },
+                                  "value": 0.05,
+                                  "perUnitOf": {
+                                    "currency": {
+                                      "value": "GBP"
+                                    }
+                                  },
+                                  "priceExpression": {
+                                    "priceType": "INTEREST_RATE"
+                                  }
+                                }
+                              }
+                            ],
+                            "quantity": [
+                              {
+                                "value": {
+                                  "unit": {
+                                    "currency": {
+                                      "value": "GBP"
+                                    }
+                                  },
+                                  "value": 1940400.0
+                                }
+                              }
+                            ]
+                          },
+                          {
+                            "meta": {
+                              "globalKey": "b9ceae52"
+                            },
+                            "observable": {
+                              "productIdentifier": [
+                                {
+                                  "value": {
+                                    "identifier": {
+                                      "value": "GBTHQ4XCY21"
+                                    }
+                                  }
+                                }
+                              ]
+                            },
+                            "price": [
+                              {
+                                "value": {
+                                  "value": 2000000,
+                                  "perUnitOf": {
+                                    "financialUnit": "CONTRACTUAL_PRODUCT"
+                                  },
+                                  "priceExpression": {
+                                    "cleanOrDirty": "DIRTY",
+                                    "priceExpression": "PERCENTAGE_OF_NOTIONAL",
+                                    "priceType": "ASSET_PRICE"
+                                  }
+                                }
+                              }
+                            ],
+                            "quantity": [
+                              {
+                                "value": {
+                                  "unit": {
+                                    "financialUnit": "CONTRACTUAL_PRODUCT"
+                                  },
+                                  "value": 2000000
+                                }
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  "tradeDate": {
+                    "value": "2023-10-02"
+                  },
+                  "tradeIdentifier": [
+                    {
+                      "assignedIdentifier": [
+                        {
+                          "identifier": {
+                            "value": "UC1GQN1435RKX0"
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                }
+              }
+            ],
+            "eventQualifier": "ContractFormation",
+            "meta": {
+              "globalKey": "441dd917"
+            }
+          },
+          "eventCreatedDate": "2023-09-27T10:57:53.88Z"
+        }
+      ]
+    }
+  ],
+  "tradeClearingService": [],
+  "tradeSettlementService": []
+}
