@@ -121,6 +121,7 @@ public class TradeBusinessEventsQueryRequest {
 
   @JsonProperty(JSON_PROPERTY_FROM_DATE)
   @JsonInclude(value = JsonInclude.Include.ALWAYS)
+  @JsonFormat(shape = JsonFormat.Shape.STRING /*pattern = "uuuu-MM-dd'T'HH:mm:ss.SSSX")*/)
   public void setFromDate(OffsetDateTime fromDate) {
     this.fromDate = fromDate;
   }
@@ -147,6 +148,7 @@ public class TradeBusinessEventsQueryRequest {
 
   @JsonProperty(JSON_PROPERTY_TO_DATE)
   @JsonInclude(value = JsonInclude.Include.ALWAYS)
+  @JsonFormat(shape = JsonFormat.Shape.STRING /*pattern = "uuuu-MM-dd'T'HH:mm:ss.SSSX")*/)
   public void setToDate(OffsetDateTime toDate) {
     this.toDate = toDate;
   }

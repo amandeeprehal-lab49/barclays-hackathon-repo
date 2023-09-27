@@ -2,6 +2,7 @@ package com.ion.barclaysapi.client;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
+import com.ion.barclaysapi.WriteToFile;
 import com.ion.barclaysapi.client.api.StartHereApi;
 import com.ion.barclaysapi.client.api.TradeQueryApiApi;
 import com.ion.barclaysapi.client.invoker.ApiClient;
@@ -10,6 +11,7 @@ import com.ion.barclaysapi.client.model.TradeBusinessEventsQueryRequest;
 import com.ion.barclaysapi.client.model.TradeBusinessEventsQueryResponse;
 import com.ion.barclaysapi.client.model.TradeWorkflowStatusResponse;
 
+import java.io.File;
 import java.time.*;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.Temporal;
@@ -21,6 +23,7 @@ import java.util.concurrent.TimeUnit;
 public class QueryApi {
 
     public static void main(String[] args) {
+        WriteToFile writter = new WriteToFile();
 
         ApiClient defaultClient = new ApiClient();
         defaultClient.setDebugging(true);
@@ -44,6 +47,7 @@ public class QueryApi {
             TradeBusinessEventsQueryResponse response1 = apiInstance.getBusinessEvents(xApiRequestId, xParticipantId, xFinancialMemberId, xApiKey, tradeBusinessEventsQueryRequest, xSimulationDate);
             TradeWorkflowStatusResponse response2 = apiInstance.getWorkflowEvents(xApiRequestId, xParticipantId, xFinancialMemberId, xApiKey, "UC1GQN1435RKX0" ,"TRADE_MATCHING_SERVICE");
             System.out.println(response1);
+            writter.write(new File("./src/main/resources/tradeBusinessEventsQueryResponse.json"), response1);
             System.out.println(response2);
         } catch (Exception e) {
             e.printStackTrace();
