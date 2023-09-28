@@ -26,43 +26,39 @@ public class UseCase4Orchestrator {
 		RepoTradeExecutionSubmissionRequest trade = newTradeAgreed();
 		
 		// To simulate new trade in DLT
-		if (submitTradeToHedera(trade)) { 
+		submitTradeToHedera(trade));
 		
-			// We simulate an event from the DLT, saying that a new contract has been formed 
-			submitTradeToBarclays(trade, buyer);
-			submitTradeToBarclays(trade, seller);
+		// We simulate an event from the DLT, saying that a new contract has been formed 
+		submitTradeToBarclays(trade, buyer);
+		submitTradeToBarclays(trade, seller);
+		
+		if (tradeIsMatchedInBarclays(trade)) {
+		
+			// We automatically simulate that the trade is settled in DLT.
+			// We can't settle directly in DLT at the moment, so this orchestrator will automatically settle in DLT.
+			var businessEvent = getTradeFormationBusinessEventFromBarclays(trade);
 			
-			if (tradeIsMatchedInBarclays(trade)) {
+			// This is for the sake of the demo - we can't generate the hash in DLT at the moment, so we delegate to Barclays's API to do it for us.
+			updateTradeHashInHedera(businessEvent);
+							
+			if (settleTradeStartLegInHedera(businessEvent)) {
+				
+				// Settlement occurs in DLT - we synch Barclays's status
+				var settlementEvent1 = settleTradeStartLegInBarclays(businessEvent, buyer);
+				var settlementEvent2 = settleTradeStartLegInBarclays(businessEvent, seller);
+				updateTradeHashInHedera(settlementEvent1);
+				updateTradeHashInHedera(settlementEvent2);
+				
 			
-				// We automatically simulate that the trade is settled in DLT.
-				// We can't settle directly in DLT at the moment, so this orchestrator will automatically settle in DLT.
-				var businessEvent = getTradeFormationBusinessEventFromBarclays(trade);
-				
-				// This is for the sake of the demo - we can't generate the hash in DLT at the moment, so we delegate to Barclays's API to do it for us.
-				updateTradeHashInHedera(businessEvent);
-								
-				if (settleTradeStartLegInHedera(businessEvent)) {
-					
-					// Settlement occurs in DLT - we synch Barclays's status
-					var settlementEvent1 = settleTradeStartLegInBarclays(businessEvent, buyer);
-					var settlementEvent2 = settleTradeStartLegInBarclays(businessEvent, seller);
-					updateTradeHashInHedera(settlementEvent1);
-					updateTradeHashInHedera(settlementEvent2);
-					
-				
-					if (settleTradeEndLegInHedera(businessEvent)) {
-						settleTradeEndtLegInBarclays(businessEvent, buyer);
-						settleTradeEndLegInBarclays(businessEvent, seller);
-					}
+				if (settleTradeEndLegInHedera(businessEvent)) {
+					settleTradeEndtLegInBarclays(businessEvent, buyer);
+					settleTradeEndLegInBarclays(businessEvent, seller);
 				}
 			}
 		}
 	}
 
-	private boolean submitTradeToHedera(RepoTradeExecutionSubmissionRequest trade) {
-		// TODO Auto-generated method stub
-		return false;
-	}
+	
 
 	private TradeExecutionApiApi executionAPI ;
 	private HederaFunctions hedera;
@@ -141,7 +137,19 @@ public class UseCase4Orchestrator {
 
 	}
 	
-	
+	private void submitTradeToHedera(RepoTradeExecutionSubmissionRequest trade) throws Exception {
+		System.out.println("Creating smart contract for trade: " + trade.getTradeId());
+		hedera.updateTradeMatching(
+				trade.getSeller().getSellerName(), // role, for demo purposes we assume to be the seller (repo trade)
+	            trade.getTradeId(), // tradeId
+	            trade.getBuyer().getBuyerName(), // cpty, for demo purposes they're the buyers (reverse repo from their perspective)
+	            trade.getTradeDetails().getTradeDate(), // Event date
+	            "New", // EventType
+	            "", // cdmHash, will be generated later
+	            "" // lineageHashnull, will be generated later 
+				);
+		System.out.println("Smart contract created for trade: " + trade.getTradeId());
+	}
 	
 	
 	
