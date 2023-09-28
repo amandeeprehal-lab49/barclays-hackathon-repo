@@ -3,6 +3,7 @@ package com.ion.barclaysapi.usecases.uc1;
 import java.io.File;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.UUID;
 
@@ -30,21 +31,17 @@ import cdm.product.template.EconomicTerms;
 import cdm.product.template.TradableProduct;
 
 public class UseCase4Orchestrator {
+
 	public static void main(String[] args) {
-
-//		String inputFolder = System.getProperty("repohack2023.uc1.input_dir");
-		String inputFolder = "C:\\Users\\dlevantesi\\RepoHack2023\\RepoHack2023_Files\\new_trades";
-		new UseCase1TradeExecution().processAllInputFiles(new File(inputFolder));
-		
+		new UseCase4Orchestrator().demo();
 	}
-
 	
 	public void demo(File tradeJson) throws Exception {
-		
-		
+
+		// A new trade is agreed
 		RepoTradeExecutionSubmissionRequest trade = newTradeAgreed();
 		
-		// Simulate new trade agreed in DLT
+		// Simulate this is agreed DLT
 		submitTradeToDLT(trade);
 		
 		// Simulate to have received an event from the DLT, saying that a new contract has been formed. 
@@ -56,38 +53,35 @@ public class UseCase4Orchestrator {
 			// We can't settle directly in DLT at the moment, so this orchestrator will automatically settle in DLT.
 			TradeBusinessEventsQueryResponse contractFormedEvent = getTradeFormationEventFromTradeMatchingService(trade);
 			
-			// This is for the sake of the demo - we can't generate the hash in DLT at the moment, so we delegate to Barclays's API to do it for us.
+			// This is for demo purpose - we can't generate the hash in DLT at the moment, so we delegate to Trade Matching API to do it for us.
 			updateTradeHashInHedera(contractFormedEvent);
-							
-			if (settleTradeStartLegInHedera(contractFormedEvent)) {
-				
-				// Settlement occurs in DLT - we synch Barclays's status
-				var settlementEvent1 = settleTradeStartLegInBarclays(contractFormedEvent, buyer);
-				var settlementEvent2 = settleTradeStartLegInBarclays(contractFormedEvent, seller);
-				updateTradeHashInHedera(settlementEvent1);
-				updateTradeHashInHedera(settlementEvent2);
-				
 			
-				if (settleTradeEndLegInHedera(contractFormedEvent)) {
-					settleTradeEndtLegInBarclays(contractFormedEvent, buyer);
-					settleTradeEndLegInBarclays(contractFormedEvent, seller);
-				}
-			}
+			// Simulate a settlement event occurring in DLT
+			settleStartLegInHedera(trade, contractFormedEvent);
+				
+			// After trade is settled in DLT, notify the Trade Settlement Service
+			settleStartLegInSettlementSystem(contractFormedEvent);
+				
+			// This is for demo purpose - we can't generate the hash in DLT at the moment, so we delegate to Trade Matching API to do it for us.
+			updateTradeHashInHedera(settlementEvent1);
+			updateTradeHashInHedera(settlementEvent2);
+				
+			// TODO do the same for end leg
 		}
 	}
 
 
-
-	private TradeExecutionApiApi executionAPI ;
-	private TradeQueryApiApi queryAPI;
-	private TradeSettlementApiApi settlementAPI;
-	private HederaFunctions hedera;
+	// Proxies to remote services
+	private TradeExecutionApiApi executionAPI; // Trade Matching Service
+	private TradeQueryApiApi queryAPI; // Trade Query API
+	private TradeSettlementApiApi settlementAPI; // Trade Settlement Service
+	private HederaFunctions hedera; // DLT - Hedera
 	
 	public UseCase4Orchestrator() {
-			this.executionAPI = new TradeExecutionApiApi(newAPIClient());
-			this.queryAPI = new TradeQueryApiApi(newAPIClient());
-			this.settlementAPI = new TradeSettlementApiApi(newAPIClient());
-			this.hedera = new HederaFunctions()
+		this.executionAPI = new TradeExecutionApiApi(newAPIClient());
+		this.queryAPI = new TradeQueryApiApi(newAPIClient());
+		this.settlementAPI = new TradeSettlementApiApi(newAPIClient());
+		this.hedera = new HederaFunctions();
 	}
 	
 	private static ApiClient newAPIClient() {
@@ -137,14 +131,14 @@ public class UseCase4Orchestrator {
 		{
 			System.out.println(String.format("Submitting trade to Trade Matching servicefor [%s] as-of [%s]. Request id: [%s].", sellerName, xSimulationDate, xApiRequestId2));
 			UUID xApiRequestId = UUID.randomUUID();
-			RepoTradeSubmissionResponse sellerRequest2 = executionAPI.postExecutionRequest(
+			RepoTradeSubmissionResponse sellerRequest = executionAPI.postExecutionRequest(
 					xApiRequestId,
 					Constants.xParticipantId, 
 					sellerName,
 					Constants.xApiKey, 
 					xSimulationDate, 
 					trade);
-			System.out.println(String.format("Trade submitted for the seller. Response: %s", buyerRequest));
+			System.out.println(String.format("Trade submitted for the seller. Response: %s", sellerRequest));
 		}
 		
 		{
@@ -219,7 +213,7 @@ public class UseCase4Orchestrator {
         return tradeBusinessEvents;
 	}
 	
-	private void updateTradeHashInHedera(RepoTradeExecutionSubmissionRequest trade, TradeBusinessEventsQueryResponse contractFormedEvent) throws Exception {
+	private void updateTradeHashInHedera(TradeBusinessEventsQueryResponse contractFormedEvent) throws Exception {
 		BusinessEventData businessEventData = contractFormedEvent.getTradeMatchingService().get(0);
 		BusinessEventDto businessEventDto = businessEventData.getBusinessEvents().get(0);
 
@@ -232,22 +226,50 @@ public class UseCase4Orchestrator {
 		String buyer = tradableProduct.getCounterparty().get(0).getPartyReference().getValue().getName().getValue();
 		String cdmRef = businessEvent.getMeta().getGlobalKey();
 		String tradeId = businessEventData.getTradeId();
+		EconomicTerms economicTerms = tradableProduct.getProduct().getContractualProduct().getEconomicTerms();
+		String tradeDate = economicTerms.getEffectiveDate().getAdjustableDate().getUnadjustedDate().toLocalDate().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
 		
-		System.out.println("Updating smart contract for trade: " + trade.getTradeId());
+		System.out.println("Updating smart contract for trade: " + tradeId);
 		hedera.updateTradeMatching(
 				seller, // role, for demo purposes we assume to be the seller (repo trade)
 	            tradeId, // tradeId
 	            buyer, // cpty, for demo purposes they're the buyers (reverse repo from their perspective)
-	            trade.getTradeDetails().getTradeDate(), // Event date
+	            tradeDate, // Event date
 	            businessEventDto.getBusinessEventName(), // EventType
 	            cdmRef, // cdmHash, will be generated later
-	            "" // lineageHashnull, will be generated later 
+	            "" // lineageHashnull, will be generated later for settlement events
 				);
 		System.out.println(String.format("Smart contract update for trade [%s] with CDM hash [%s]", tradeId, cdmRef)); 
 	}
 	
+	private void settleStartLegInHedera(RepoTradeExecutionSubmissionRequest trade, TradeBusinessEventsQueryResponse contractFormedEvent) throws Exception {
+		
+		BusinessEventData businessEventData = contractFormedEvent.getTradeMatchingService().get(0);
+		BusinessEventDto businessEventDto = businessEventData.getBusinessEvents().get(0);
 
-	 private void settle(RepoTradeExecutionSubmissionRequest trade, TradeBusinessEventsQueryResponse contractFormationEvent) {
+		ObjectMapper rosettaObjectMapper = RosettaObjectMapper.getNewRosettaObjectMapper();
+		BusinessEvent businessEvent = rosettaObjectMapper.convertValue(businessEventDto.getBusinessEventData(), BusinessEvent.class);
+		
+		TradeState tradeState = businessEvent.getAfter().get(0);
+		TradableProduct tradableProduct = tradeState.getTrade().getTradableProduct();
+		String seller = tradableProduct.getCounterparty().get(1).getPartyReference().getValue().getName().getValue();
+		String buyer = tradableProduct.getCounterparty().get(0).getPartyReference().getValue().getName().getValue();
+		String cdmRef = businessEvent.getMeta().getGlobalKey();
+		String tradeId = businessEventData.getTradeId();
+		EconomicTerms economicTerms = tradableProduct.getProduct().getContractualProduct().getEconomicTerms();
+		String tradeDate = economicTerms.getEffectiveDate().getAdjustableDate().getUnadjustedDate().toLocalDate().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+		
+		System.out.println("Settling smart contract for trade: " + trade.getTradeId());
+		hedera.updateSettlementEvent(
+				tradeDate, // dvpDate,
+				"123.456", // collateral, 
+				economicTerms.getPayout().getInterestRatePayout().get(0).getRateSpecification().getFixedRate().getRateSchedule().getPrice().getValue().getValue().toString() // amount
+				);
+		System.out.println(String.format("Smart contract settled for trade [%s] with CDM hash [%s]", tradeId, cdmRef)); 
+	}
+	
+
+	private void settle(RepoTradeExecutionSubmissionRequest trade, TradeBusinessEventsQueryResponse contractFormationEvent) {
 		 
 		 BusinessEventData businessEventData = contractFormationEvent.getTradeMatchingService().get(0);		 
 		 BusinessEventDto businessEventDto = businessEventData.getBusinessEvents().get(0);
@@ -260,7 +282,7 @@ public class UseCase4Orchestrator {
 //		 EconomicTerms economicTerms = tradableProduct.getProduct().getContractualProduct().getEconomicTerms();
 
 		 String tradeId = businessEventData.getTradeId();
-		 String seller = tradableProduct.getCounterparty().get(1).getPartyReference().getValue().getName().getValue());
+		 String seller = tradableProduct.getCounterparty().get(1).getPartyReference().getValue().getName().getValue();
 		 String buyer = tradableProduct.getCounterparty().get(0).getPartyReference().getValue().getName().getValue();
 		
 		String cdmRef = businessEvent.getMeta().getGlobalKey();
@@ -284,77 +306,8 @@ public class UseCase4Orchestrator {
 					settlementRequest);
 			System.out.println(response);
 	    }
-	 
-//	
-//	
-//	
-//	
-//	
-//	
-//	
-//	
-//	private TradeExecutionApiApi executionAPI ;
-//	
-//	public UseCase1TradeExecution() {
-//		this.executionAPI = new TradeExecutionApiApi();
-//
-//	}
-//	
-//	public void processAllInputFiles(final File folder) {
-//		for (final File inputFile : folder.listFiles((dir, name) -> name.toLowerCase().endsWith(".json.SUCCESS"))) {
-//			processFile(inputFile);
-//		}
-//	}
-//
-//	private void processFile(File inputFile) {
-//		try {
-//			
-//			System.out.println("Processing input file: " + inputFile.getName());
-//
-//			ObjectMapper objectMapper = new ObjectMapper();
-//			RepoTradeExecutionSubmissionRequest repoTrade = objectMapper.readValue(inputFile, RepoTradeExecutionSubmissionRequest.class);
-//
-//			String tradeId = repoTrade.getTradeId();
-//			String buyerName = repoTrade.getBuyer().getBuyerName();
-//			String sellerName = repoTrade.getSeller().getSellerName();
-//			String tradeDate = repoTrade.getTradeDetails().getTradeDate();
-//			String maturityDate = repoTrade.getTradeDetails().getMaturityDate();
-//
-////			getBusinessEvent("TRADE_SETTLsellerName, tradeDate, tradeId, maturityDate);
-//
-//		} catch (Exception e) {
-//			System.err.println("Exception when calling StartHereApi#getPublicPing");
-//			e.printStackTrace();
-//		}
-//	}
-//	
-//	void getBusinessEvent(String fmi, String role, String tradeId, String date) {
-//		//ApiClient defaultClient = Configuration.getDefaultApiClient();
-//	    ApiClient defaultClient = new ApiClient();
-//	    defaultClient.setBasePath("https://repohack2023.nayaone.com");
-//	    defaultClient.setDebugging(true);
-//	    
-//	    TradeQueryApiApi apiInstance = new TradeQueryApiApi(defaultClient);
-//	    UUID xApiRequestId = UUID.randomUUID();
-//	    String xFinancialMemberId = role;
-//	    String xSimulationDate = date;
-//
-//	    TradeBusinessEventsQueryRequest tradeBusinessEventsQueryRequest = new TradeBusinessEventsQueryRequest();
-//	    tradeBusinessEventsQueryRequest.setTradeId(tradeId);
-//	    tradeBusinessEventsQueryRequest.setFmi(fmi);
-//	    tradeBusinessEventsQueryRequest.fromDate(OffsetDateTime.parse(date));
-//	    tradeBusinessEventsQueryRequest.toDate(OffsetDateTime.parse(date).plusDays(1));
-//	    try {
-//	        TradeBusinessEventsQueryResponse response = apiInstance.getBusinessEvents(
-//	        		xApiRequestId, 
-//	        		Constants.xParticipantId, 
-//	        		xFinancialMemberId, 
-//	        		Constants.xApiKey, 
-//	        		tradeBusinessEventsQueryRequest, 
-//	        		xSimulationDate);
-//	        System.out.println(response);
-//	    } catch (Exception e) {
-//	        e.printStackTrace();
-//	    }
-//	}
+
+	 private void updateTradeHashInHedera(RepoTradeExecutionSubmissionRequest trade, TradeBusinessEventsQueryResponse contractFormedEvent) throws Exception {
+		 // TODO
+	}
 }
