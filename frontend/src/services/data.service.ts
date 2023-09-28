@@ -26,11 +26,11 @@ export class DataService {
 
     blotterData$ = new Subject<Partial<Blotter>[] | Partial<Blotter>>();
 
-    contractAddress = '0.0.2901598';
+    contractAddress = '0.0.2956116';// 0.0.2901598
 
     listenForTradeEvents(role: Role) {
         this.getEvents(this.contractAddress, true);
-        
+
         // for testing
         // timer(1000, 4000).pipe(map(() => mockBlotterRow)).subscribe(() => this.blotterData$.next(mockBlotterRow))
     }
@@ -67,16 +67,16 @@ export class DataService {
                         // TradeMatchingInputs
                         role: individualTradeEvent.tradeInputs['role'],
                         tradeId: individualTradeEvent.tradeInputs['tradeId'],
-                        counterParty: individualTradeEvent.tradeInputs['counterParty'],
+                        counterParty: individualTradeEvent.tradeInputs['counterparty'],
                         eventDate: individualTradeEvent.tradeInputs['eventDate'],
                         eventType: individualTradeEvent.tradeInputs['eventType'],
                         cdmHash: individualTradeEvent.tradeInputs['cdmHash'],
                         lineageHash: individualTradeEvent.tradeInputs['lineageHash'],
-        
+
                         // Economic Terms
                         effectiveDate: individualTradeEvent.economicTerms['effectiveDate'],
                         maturityDate: individualTradeEvent.economicTerms['maturityDate'],
-        
+
                         // Settlement Event
                         dvpDate: individualTradeEvent.settlementEvent['dvpDate'],
                         collateral: individualTradeEvent.settlementEvent['collateral'],
@@ -86,7 +86,7 @@ export class DataService {
                 })
             }
         });
-        
+
         // // const blotterData = events.get('TradeState') || [].reduce((_blotterData, _event) => {
         // //     const { tradeInputs, economicTerms, settlementEvent } = _event;
         // //     const rowData = {
