@@ -4,7 +4,6 @@ import "@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.so
 import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 
 contract BarclaysRepo is OwnableUpgradeable {
-
     struct TradeMatchingInputs {
         string role;
         string tradeId;
@@ -23,7 +22,7 @@ contract BarclaysRepo is OwnableUpgradeable {
     struct SettlementEvent {
         string dvpDate;
         string collateral;
-        uint256 amount;
+        string amount;
     }
 
     event TradeState(
@@ -57,6 +56,52 @@ contract BarclaysRepo is OwnableUpgradeable {
         settlementEvent = _settlementEvent;
         emit TradeState(_tradeInputs, _economicTerms, _settlementEvent);
     }
-}
 
- 
+    function updateTradeMatchinInputs(
+        string memory effectiveDate,
+        string memory maturityDate
+    ) public {
+        economicTerms.effectiveDate = effectiveDate;
+        economicTerms.maturityDate = maturityDate;
+        emit TradeState(tradeInputs, economicTerms, settlementEvent);
+    }
+
+    function updateEconomicTerms(
+        string memory effectiveDate,
+        string memory maturityDate
+    ) public {
+        economicTerms.effectiveDate = effectiveDate;
+        economicTerms.maturityDate = maturityDate;
+        emit TradeState(tradeInputs, economicTerms, settlementEvent);
+    }
+
+    function updateSettlementEvent(
+        string memory dvpDate,
+        string memory collateral,
+        string memory amount
+    ) public {
+        settlementEvent.dvpDate = dvpDate;
+        settlementEvent.collateral = collateral;
+        settlementEvent.amount = amount;
+        emit TradeState(tradeInputs, economicTerms, settlementEvent);
+    }
+
+    function updateTradeMatchingInputs(
+        string memory role,
+        string memory tradeId,
+        string memory counterparty,
+        string memory eventDate,
+        string memory eventType,
+        string memory cdmHash,
+        string memory lineageHash
+    ) public {
+        tradeInputs.role = role;
+        tradeInputs.tradeId = tradeId;
+        tradeInputs.counterparty = counterparty;
+        tradeInputs.eventDate = eventDate;
+        tradeInputs.eventType = eventType;
+        tradeInputs.cdmHash = cdmHash;
+        tradeInputs.lineageHash = lineageHash;
+        emit TradeState(tradeInputs, economicTerms, settlementEvent);
+    }
+}
