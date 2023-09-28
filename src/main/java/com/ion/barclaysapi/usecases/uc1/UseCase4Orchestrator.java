@@ -1,6 +1,9 @@
 package com.ion.barclaysapi.usecases.uc1;
 
 import java.io.File;
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
+import java.util.List;
 import java.util.UUID;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -8,10 +11,23 @@ import com.ion.barclaysapi.client.api.TradeExecutionApiApi;
 import com.ion.barclaysapi.client.api.TradeQueryApiApi;
 import com.ion.barclaysapi.client.api.TradeSettlementApiApi;
 import com.ion.barclaysapi.client.invoker.ApiClient;
+import com.ion.barclaysapi.client.model.BusinessEventData;
+import com.ion.barclaysapi.client.model.BusinessEventDto;
 import com.ion.barclaysapi.client.model.RepoTradeExecutionSubmissionRequest;
 import com.ion.barclaysapi.client.model.RepoTradeSubmissionResponse;
+import com.ion.barclaysapi.client.model.SettlementRequestBody;
+import com.ion.barclaysapi.client.model.TradeBusinessEventsQueryRequest;
+import com.ion.barclaysapi.client.model.TradeBusinessEventsQueryResponse;
 import com.ion.barclaysapi.client.model.TradeWorkflowStatusResponse;
+import com.ion.barclaysapi.client.model.WorkflowEvent;
+import com.ion.barclaysapi.client.model.WorkflowEventData;
 import com.ion.barclaysapi.hedera.HederaFunctions;
+import com.regnosys.rosetta.common.serialisation.RosettaObjectMapper;
+
+import cdm.event.common.BusinessEvent;
+import cdm.event.common.TradeState;
+import cdm.product.template.EconomicTerms;
+import cdm.product.template.TradableProduct;
 
 public class UseCase4Orchestrator {
 	public static void main(String[] args) {
@@ -38,30 +54,27 @@ public class UseCase4Orchestrator {
 		
 			// We automatically simulate that the trade is settled in DLT.
 			// We can't settle directly in DLT at the moment, so this orchestrator will automatically settle in DLT.
-			var businessEvent = getTradeFormationBusinessEventFromBarclays(trade);
+			TradeBusinessEventsQueryResponse contractFormedEvent = getTradeFormationEventFromTradeMatchingService(trade);
 			
 			// This is for the sake of the demo - we can't generate the hash in DLT at the moment, so we delegate to Barclays's API to do it for us.
-			updateTradeHashInHedera(businessEvent);
+			updateTradeHashInHedera(contractFormedEvent);
 							
-			if (settleTradeStartLegInHedera(businessEvent)) {
+			if (settleTradeStartLegInHedera(contractFormedEvent)) {
 				
 				// Settlement occurs in DLT - we synch Barclays's status
-				var settlementEvent1 = settleTradeStartLegInBarclays(businessEvent, buyer);
-				var settlementEvent2 = settleTradeStartLegInBarclays(businessEvent, seller);
+				var settlementEvent1 = settleTradeStartLegInBarclays(contractFormedEvent, buyer);
+				var settlementEvent2 = settleTradeStartLegInBarclays(contractFormedEvent, seller);
 				updateTradeHashInHedera(settlementEvent1);
 				updateTradeHashInHedera(settlementEvent2);
 				
 			
-				if (settleTradeEndLegInHedera(businessEvent)) {
-					settleTradeEndtLegInBarclays(businessEvent, buyer);
-					settleTradeEndLegInBarclays(businessEvent, seller);
+				if (settleTradeEndLegInHedera(contractFormedEvent)) {
+					settleTradeEndtLegInBarclays(contractFormedEvent, buyer);
+					settleTradeEndLegInBarclays(contractFormedEvent, seller);
 				}
 			}
 		}
 	}
-
-	
-
 
 
 
@@ -70,8 +83,6 @@ public class UseCase4Orchestrator {
 	private TradeSettlementApiApi settlementAPI;
 	private HederaFunctions hedera;
 	
-	
-
 	public UseCase4Orchestrator() {
 			this.executionAPI = new TradeExecutionApiApi(newAPIClient());
 			this.queryAPI = new TradeQueryApiApi(newAPIClient());
@@ -159,7 +170,7 @@ public class UseCase4Orchestrator {
         String xFinancialMemberId = trade.getSeller().getSellerName();
         String tradeId = trade.getTradeId();
 
-        System.out.println("Checking trade matching status for trade: %s" + tradeId);
+        System.out.println("Checking trade matching status for trade: " + tradeId);
         
         TradeWorkflowStatusResponse response = queryAPI.getWorkflowEvents(
         		xApiRequestId, 
@@ -168,9 +179,112 @@ public class UseCase4Orchestrator {
         		Constants.xApiKey,
         		tradeId, 
         		"TRADE_MATCHING_SERVICE");
-        response.getTradeMatchingService().
-        System.out.println(response);
+        List<WorkflowEventData> workflowEvents = response.getTradeSettlementService();
+        if (workflowEvents.size()==1 && workflowEvents.get(0).getWorkflowEvents().size()==2) {
+        	WorkflowEvent workflowEvent = workflowEvents.get(0).getWorkflowEvents().get(1);
+        	String tradeStatus = workflowEvent.getTradeStatus();
+        	String tradeMatchingStatus = workflowEvent.getTradeMatchingStatus();
+
+            System.out.println("Trade matching status: " + tradeMatchingStatus);
+            return ("TRADE_MATCH_SUCCESS".equals(tradeMatchingStatus));
+        } else {
+        	System.out.println("Unknown trade matching status");
+            return false;
+        }
 	}
+	
+	private TradeBusinessEventsQueryResponse getTradeFormationEventFromTradeMatchingService(RepoTradeExecutionSubmissionRequest trade) {
+		
+		System.out.println("Getting trade formation event for trade: " + trade.getTradeId());
+        
+        String xFinancialMemberId = trade.getSeller().getSellerName();
+        String xSimulationDate = trade.getTradeDetails().getTradeDate();
+        
+        TradeBusinessEventsQueryRequest tradeBusinessEventsQueryRequest = new TradeBusinessEventsQueryRequest();
+        tradeBusinessEventsQueryRequest.setTradeId(trade.getTradeId());
+        tradeBusinessEventsQueryRequest.setFmi("TRADE_MATCHING_SERVICE");
+        tradeBusinessEventsQueryRequest.fromDate(OffsetDateTime.of(2023, 9, 25, 11, 51, 0, 0, ZoneOffset.UTC)); // Large enough to get all the data - needs proper filtering in real-world scenario 
+        tradeBusinessEventsQueryRequest.toDate(OffsetDateTime.of(2023, 11, 15, 11, 52, 0, 0, ZoneOffset.UTC));
+
+        UUID xApiRequestId = UUID.randomUUID();
+
+        TradeBusinessEventsQueryResponse tradeBusinessEvents = queryAPI.getBusinessEvents(
+            		xApiRequestId, 
+            		Constants.xParticipantId, 
+            		xFinancialMemberId, 
+            		Constants.xApiKey, 
+            		tradeBusinessEventsQueryRequest, 
+            		xSimulationDate);
+        System.out.println(tradeBusinessEvents);
+        return tradeBusinessEvents;
+	}
+	
+	private void updateTradeHashInHedera(RepoTradeExecutionSubmissionRequest trade, TradeBusinessEventsQueryResponse contractFormedEvent) throws Exception {
+		BusinessEventData businessEventData = contractFormedEvent.getTradeMatchingService().get(0);
+		BusinessEventDto businessEventDto = businessEventData.getBusinessEvents().get(0);
+
+		ObjectMapper rosettaObjectMapper = RosettaObjectMapper.getNewRosettaObjectMapper();
+		BusinessEvent businessEvent = rosettaObjectMapper.convertValue(businessEventDto.getBusinessEventData(), BusinessEvent.class);
+		
+		TradeState tradeState = businessEvent.getAfter().get(0);
+		TradableProduct tradableProduct = tradeState.getTrade().getTradableProduct();
+		String seller = tradableProduct.getCounterparty().get(1).getPartyReference().getValue().getName().getValue();
+		String buyer = tradableProduct.getCounterparty().get(0).getPartyReference().getValue().getName().getValue();
+		String cdmRef = businessEvent.getMeta().getGlobalKey();
+		String tradeId = businessEventData.getTradeId();
+		
+		System.out.println("Updating smart contract for trade: " + trade.getTradeId());
+		hedera.updateTradeMatching(
+				seller, // role, for demo purposes we assume to be the seller (repo trade)
+	            tradeId, // tradeId
+	            buyer, // cpty, for demo purposes they're the buyers (reverse repo from their perspective)
+	            trade.getTradeDetails().getTradeDate(), // Event date
+	            businessEventDto.getBusinessEventName(), // EventType
+	            cdmRef, // cdmHash, will be generated later
+	            "" // lineageHashnull, will be generated later 
+				);
+		System.out.println(String.format("Smart contract update for trade [%s] with CDM hash [%s]", tradeId, cdmRef)); 
+	}
+	
+
+	 private void settle(RepoTradeExecutionSubmissionRequest trade, TradeBusinessEventsQueryResponse contractFormationEvent) {
+		 
+		 BusinessEventData businessEventData = contractFormationEvent.getTradeMatchingService().get(0);		 
+		 BusinessEventDto businessEventDto = businessEventData.getBusinessEvents().get(0);
+
+		 ObjectMapper rosettaObjectMapper = RosettaObjectMapper.getNewRosettaObjectMapper();
+		 BusinessEvent businessEvent = rosettaObjectMapper.convertValue(businessEventDto.getBusinessEventData(), BusinessEvent.class);
+
+		 TradeState tradeState = businessEvent.getAfter().get(0);
+		 TradableProduct tradableProduct = tradeState.getTrade().getTradableProduct();
+//		 EconomicTerms economicTerms = tradableProduct.getProduct().getContractualProduct().getEconomicTerms();
+
+		 String tradeId = businessEventData.getTradeId();
+		 String seller = tradableProduct.getCounterparty().get(1).getPartyReference().getValue().getName().getValue());
+		 String buyer = tradableProduct.getCounterparty().get(0).getPartyReference().getValue().getName().getValue();
+		
+		String cdmRef = businessEvent.getMeta().getGlobalKey();
+
+				
+			UUID xApiRequestId = UUID.randomUUID();
+			String xFinancialMemberId = trade.getSeller().getSellerName(); // TODO this can be retrieved from contractFormationEvent as well. Requires some machinery...
+			String xSimulationDate = trade.getTradeDetails().getTradeDate();
+			
+			Object businessEventData = businessEvent.getBusinessEvents().get(0).getBusinessEventData(); // This is a valid 
+			SettlementRequestBody  settlementRequest = new SettlementRequestBody();
+			settlementRequest.businessEventData(businessEventData);        
+			
+			System.out.println(String.format("Instructing the Settlement Service for the start leg of trade [%]", trade.getTradeId()));
+			RepoTradeSubmissionResponse response = settlementAPI.postSettlementRequest(
+					xApiRequestId,
+					Constants.xParticipantId, 
+					xFinancialMemberId, 
+					Constants.xApiKey, 
+					xSimulationDate,
+					settlementRequest);
+			System.out.println(response);
+	    }
+	 
 //	
 //	
 //	
