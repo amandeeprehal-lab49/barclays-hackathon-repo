@@ -33,10 +33,14 @@ import cdm.product.template.TradableProduct;
 public class UseCase4Orchestrator {
 
 	public static void main(String[] args) {
-		new UseCase4Orchestrator().demo();
+		try {
+			new UseCase4Orchestrator().demo();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
 	
-	public void demo(File tradeJson) throws Exception {
+	public void demo() throws Exception {
 
 		// A new trade is agreed
 		RepoTradeExecutionSubmissionRequest trade = newTradeAgreed();
@@ -54,7 +58,7 @@ public class UseCase4Orchestrator {
 			TradeBusinessEventsQueryResponse contractFormedEvent = getTradeFormationEventFromTradeMatchingService(trade);
 			
 			// This is for demo purpose - we can't generate the hash in DLT at the moment, so we delegate to Trade Matching API to do it for us.
-			updateTradeHashInHedera(contractFormedEvent);
+			updateTradeHashInHederaForNewContract(contractFormedEvent);
 			
 			// Simulate a settlement event occurring in DLT
 			settleStartLegInHedera(trade, contractFormedEvent);
@@ -63,8 +67,7 @@ public class UseCase4Orchestrator {
 			settleStartLegInSettlementSystem(contractFormedEvent);
 				
 			// This is for demo purpose - we can't generate the hash in DLT at the moment, so we delegate to Trade Matching API to do it for us.
-			updateTradeHashInHedera(settlementEvent1);
-			updateTradeHashInHedera(settlementEvent2);
+			updateTradeHashInHederaForSettlement();
 				
 			// TODO do the same for end leg
 		}
@@ -129,8 +132,8 @@ public class UseCase4Orchestrator {
 		String xSimulationDate = trade.getTradeDetails().getTradeDate();
 
 		{
-			System.out.println(String.format("Submitting trade to Trade Matching servicefor [%s] as-of [%s]. Request id: [%s].", sellerName, xSimulationDate, xApiRequestId2));
 			UUID xApiRequestId = UUID.randomUUID();
+			System.out.println(String.format("Submitting trade to Trade Matching servicefor [%s] as-of [%s]. Request id: [%s].", sellerName, xSimulationDate, xApiRequestId));
 			RepoTradeSubmissionResponse sellerRequest = executionAPI.postExecutionRequest(
 					xApiRequestId,
 					Constants.xParticipantId, 
@@ -143,8 +146,7 @@ public class UseCase4Orchestrator {
 		
 		{
 			UUID xApiRequestId = UUID.randomUUID();
-
-			System.out.println(String.format("Submitting trade to Trade Matching service for [%s] as-of [%s]. Request id: [%s].", buyerName, xSimulationDate, xApiRequestId1));
+			System.out.println(String.format("Submitting trade to Trade Matching service for [%s] as-of [%s]. Request id: [%s].", buyerName, xSimulationDate, xApiRequestId));
 
 			RepoTradeSubmissionResponse buyerRequest = executionAPI.postExecutionRequest(
 					xApiRequestId,
@@ -213,7 +215,7 @@ public class UseCase4Orchestrator {
         return tradeBusinessEvents;
 	}
 	
-	private void updateTradeHashInHedera(TradeBusinessEventsQueryResponse contractFormedEvent) throws Exception {
+	private void updateTradeHashInHederaForNewContract(TradeBusinessEventsQueryResponse contractFormedEvent) throws Exception {
 		BusinessEventData businessEventData = contractFormedEvent.getTradeMatchingService().get(0);
 		BusinessEventDto businessEventDto = businessEventData.getBusinessEvents().get(0);
 
@@ -269,45 +271,54 @@ public class UseCase4Orchestrator {
 	}
 	
 
-	private void settle(RepoTradeExecutionSubmissionRequest trade, TradeBusinessEventsQueryResponse contractFormationEvent) {
-		 
-		 BusinessEventData businessEventData = contractFormationEvent.getTradeMatchingService().get(0);		 
-		 BusinessEventDto businessEventDto = businessEventData.getBusinessEvents().get(0);
+	private void settleStartLegInSettlementSystem(TradeBusinessEventsQueryResponse contractFormationEvent) {
 
-		 ObjectMapper rosettaObjectMapper = RosettaObjectMapper.getNewRosettaObjectMapper();
-		 BusinessEvent businessEvent = rosettaObjectMapper.convertValue(businessEventDto.getBusinessEventData(), BusinessEvent.class);
+		BusinessEventData businessEventData = contractFormationEvent.getTradeMatchingService().get(0);
+		BusinessEventDto businessEventDto = businessEventData.getBusinessEvents().get(0);
 
-		 TradeState tradeState = businessEvent.getAfter().get(0);
-		 TradableProduct tradableProduct = tradeState.getTrade().getTradableProduct();
-//		 EconomicTerms economicTerms = tradableProduct.getProduct().getContractualProduct().getEconomicTerms();
+		ObjectMapper rosettaObjectMapper = RosettaObjectMapper.getNewRosettaObjectMapper();
+		BusinessEvent businessEvent = rosettaObjectMapper.convertValue(businessEventDto.getBusinessEventData(), BusinessEvent.class);
 
-		 String tradeId = businessEventData.getTradeId();
-		 String seller = tradableProduct.getCounterparty().get(1).getPartyReference().getValue().getName().getValue();
-		 String buyer = tradableProduct.getCounterparty().get(0).getPartyReference().getValue().getName().getValue();
+		TradeState tradeState = businessEvent.getAfter().get(0);
+		TradableProduct tradableProduct = tradeState.getTrade().getTradableProduct();
+
+		String tradeId = businessEventData.getTradeId();
+		String seller = tradableProduct.getCounterparty().get(1).getPartyReference().getValue().getName().getValue();
+		String buyer = tradableProduct.getCounterparty().get(0).getPartyReference().getValue().getName().getValue();
+
+		EconomicTerms economicTerms = tradableProduct.getProduct().getContractualProduct().getEconomicTerms();
+		String tradeDate = economicTerms.getEffectiveDate().getAdjustableDate().getUnadjustedDate().toLocalDate().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
 		
 		String cdmRef = businessEvent.getMeta().getGlobalKey();
 
-				
-			UUID xApiRequestId = UUID.randomUUID();
-			String xFinancialMemberId = trade.getSeller().getSellerName(); // TODO this can be retrieved from contractFormationEvent as well. Requires some machinery...
-			String xSimulationDate = trade.getTradeDetails().getTradeDate();
-			
-			Object businessEventData = businessEvent.getBusinessEvents().get(0).getBusinessEventData(); // This is a valid 
-			SettlementRequestBody  settlementRequest = new SettlementRequestBody();
-			settlementRequest.businessEventData(businessEventData);        
-			
-			System.out.println(String.format("Instructing the Settlement Service for the start leg of trade [%]", trade.getTradeId()));
-			RepoTradeSubmissionResponse response = settlementAPI.postSettlementRequest(
-					xApiRequestId,
-					Constants.xParticipantId, 
-					xFinancialMemberId, 
-					Constants.xApiKey, 
-					xSimulationDate,
-					settlementRequest);
-			System.out.println(response);
-	    }
+		UUID xApiRequestId = UUID.randomUUID();
+		String xSimulationDate = tradeDate;
 
-	 private void updateTradeHashInHedera(RepoTradeExecutionSubmissionRequest trade, TradeBusinessEventsQueryResponse contractFormedEvent) throws Exception {
+		SettlementRequestBody settlementRequest = new SettlementRequestBody();
+		settlementRequest.businessEventData(businessEventData);
+
+		System.out.println(String.format("Instructing the Settlement Service for the start leg of trade [%], seller side.", tradeId));
+		RepoTradeSubmissionResponse sellerResponse = settlementAPI.postSettlementRequest(
+				xApiRequestId,
+				Constants.xParticipantId, 
+				seller, 
+				Constants.xApiKey, 
+				xSimulationDate, 
+				settlementRequest);
+		
+		System.out.println(String.format("Instructing the Settlement Service for the start leg of trade [%], buyer side.", tradeId));
+		RepoTradeSubmissionResponse buyerResponse = settlementAPI.postSettlementRequest(
+				xApiRequestId,
+				Constants.xParticipantId, 
+				buyer, 
+				Constants.xApiKey, 
+				xSimulationDate, 
+				settlementRequest);
+		
+	}
+
+	 private void updateTradeHashInHederaForSettlement() throws Exception {
 		 // TODO
+		 System.out.println(String.format("Updating lineage ref in DLT."));
 	}
 }
