@@ -25,14 +25,13 @@ public class UseCase4Orchestrator {
 		
 		RepoTradeExecutionSubmissionRequest trade = newTradeAgreed();
 		
-		// To simulate new trade in DLT
-		submitTradeToHedera(trade));
+		// Simulate new trade agreed in DLT
+		submitTradeToDLT(trade);
 		
-		// We simulate an event from the DLT, saying that a new contract has been formed 
-		submitTradeToBarclays(trade, buyer);
-		submitTradeToBarclays(trade, seller);
+		// Simulate to have received an event from the DLT, saying that a new contract has been formed. 
+		submitTradeToMatchingService(trade);
 		
-		if (tradeIsMatchedInBarclays(trade)) {
+		if (tradeIsMatched(trade)) {
 		
 			// We automatically simulate that the trade is settled in DLT.
 			// We can't settle directly in DLT at the moment, so this orchestrator will automatically settle in DLT.
@@ -60,6 +59,8 @@ public class UseCase4Orchestrator {
 
 	
 
+
+
 	private TradeExecutionApiApi executionAPI ;
 	private HederaFunctions hedera;
 	
@@ -82,62 +83,16 @@ public class UseCase4Orchestrator {
 		// Sample file content:
 		// {"trade_id": "ABCDQN1435RKX0", "buyer": {"buyer_name": "CLIENT01", "buyer_lei": "CLIENT01-LEI02", "buyer_account": "CLIENT01-ACCOUNT02"}, "seller": {"seller_name": "DEALER02", "seller_lei": "DEALER02-LEI01", "seller_account": "DEALER02-ACCOUNT01"}, "trade_details": {"trade_date": "2023-10-16", "effective_date": "2023-10-16", "maturity_date": "2023-10-18", "repo_rate": 0.05, "rate_daycount_convention": "ACT_360", "collateral_id": "GBTHQ4XCY21", "collateral_notional": 2000000, "collateral_haircut": 0.02, "collateral_dirty_price": "99.00", "trade_ccy": "GBP", "cash_amount": "1940400.00", "termination_cash_amount": "1940665.81"}}
 		
-		try {
-			
-			File inputFile = new File("C:\\Users\\dlevantesi\\RepoHack2023\\RepoHack2023_Files\\new_trades\\new_trade.json");
-		
-			System.out.println("Processing input file: " + inputFile.getName());
-
-			ObjectMapper objectMapper = new ObjectMapper();
-			RepoTradeExecutionSubmissionRequest trade = objectMapper.readValue(inputFile, RepoTradeExecutionSubmissionRequest.class);
-
-			String tradeId = trade.getTradeId();
-			String buyerName = trade.getBuyer().getBuyerName();
-			String sellerName = trade.getSeller().getSellerName();
-			String tradeDate = trade.getTradeDetails().getTradeDate();
-			String maturityDate = trade.getTradeDetails().getMaturityDate();
-
-			UUID xApiRequestId1 = UUID.randomUUID();
-
-			String xSimulationDate = trade.getTradeDetails().getTradeDate();
-
-			{
-				System.out.println(String.format("Submitting trade for [%s] as-of [%s]. Request id: [%s].", buyerName, xSimulationDate, xApiRequestId1));
+		File inputFile = new File("C:\\Users\\dlevantesi\\RepoHack2023\\RepoHack2023_Files\\new_trades\\new_trade.json");
 	
-				RepoTradeSubmissionResponse buyerRequest = executionAPI.postExecutionRequest(
-						xApiRequestId1,
-						Constants.xParticipantId, 
-						buyerName, 
-						Constants.xApiKey, 
-						xSimulationDate,
-						trade);
-	
-				System.out.println(xApiRequestId1 + ":" + buyerRequest);
-			}
+		System.out.println("New trade agreed");
+		ObjectMapper objectMapper = new ObjectMapper();
+		RepoTradeExecutionSubmissionRequest trade = objectMapper.readValue(inputFile, RepoTradeExecutionSubmissionRequest.class);
 
-			{
-				System.out.println(String.format("Submitting trade for [%s] as-of [%s]. Request id: [%s].", sellerName, xSimulationDate, xApiRequestId2));
-				UUID xApiRequestId2 = UUID.randomUUID();
-				RepoTradeSubmissionResponse sellerRequest2 = executionAPI.postExecutionRequest(
-						xApiRequestId2,
-						Constants.xParticipantId, 
-						sellerName,
-						Constants.xApiKey, 
-						xSimulationDate, 
-						trade);
-	
-				System.out.println(xApiRequestId2 + ":" + sellerRequest2);
-			}
-			
-			return trade;
-		} catch (Exception e) {
-			e.printStackTrace();
-			throw e;
-		}
-
+		return trade;
 	}
 	
-	private void submitTradeToHedera(RepoTradeExecutionSubmissionRequest trade) throws Exception {
+	private void submitTradeToDLT(RepoTradeExecutionSubmissionRequest trade) throws Exception {
 		System.out.println("Creating smart contract for trade: " + trade.getTradeId());
 		hedera.updateTradeMatching(
 				trade.getSeller().getSellerName(), // role, for demo purposes we assume to be the seller (repo trade)
@@ -151,7 +106,44 @@ public class UseCase4Orchestrator {
 		System.out.println("Smart contract created for trade: " + trade.getTradeId());
 	}
 	
-	
+	private void submitTradeToMatchingService(RepoTradeExecutionSubmissionRequest trade) throws Exception {
+		String tradeId = trade.getTradeId();
+		String buyerName = trade.getBuyer().getBuyerName();
+		String sellerName = trade.getSeller().getSellerName();
+		String tradeDate = trade.getTradeDetails().getTradeDate();
+		String maturityDate = trade.getTradeDetails().getMaturityDate();
+
+		String xSimulationDate = trade.getTradeDetails().getTradeDate();
+
+		{
+			System.out.println(String.format("Submitting trade to Trade Matching servicefor [%s] as-of [%s]. Request id: [%s].", sellerName, xSimulationDate, xApiRequestId2));
+			UUID xApiRequestId = UUID.randomUUID();
+			RepoTradeSubmissionResponse sellerRequest2 = executionAPI.postExecutionRequest(
+					xApiRequestId,
+					Constants.xParticipantId, 
+					sellerName,
+					Constants.xApiKey, 
+					xSimulationDate, 
+					trade);
+			System.out.println(String.format("Trade submitted for the seller. Response: %s", buyerRequest));
+		}
+		
+		{
+			UUID xApiRequestId = UUID.randomUUID();
+
+			System.out.println(String.format("Submitting trade to Trade Matching service for [%s] as-of [%s]. Request id: [%s].", buyerName, xSimulationDate, xApiRequestId1));
+
+			RepoTradeSubmissionResponse buyerRequest = executionAPI.postExecutionRequest(
+					xApiRequestId,
+					Constants.xParticipantId, 
+					buyerName, 
+					Constants.xApiKey, 
+					xSimulationDate,
+					trade);
+
+			System.out.println(String.format("Trade submitted for the buyer. Response: %s", buyerRequest));
+		}
+	}
 	
 //	
 //	
