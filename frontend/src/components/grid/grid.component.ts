@@ -8,7 +8,7 @@ import { Blotter } from 'src/models/blotter.model';
   styleUrls: ['./grid.component.scss']
 })
 export class GridComponent {
-  @Input() rowData: Blotter[] = [];
+  @Input() rowData: Partial<Blotter>[] = [];
 
   @Output() gridReady = new EventEmitter<GridReadyEvent>();
 
@@ -22,14 +22,19 @@ export class GridComponent {
     },
   };
 
-  colDef: ColDef<Blotter>[] = [
+  colDef: ColDef<Partial<Blotter>>[] = [
     {field: 'role'},
     {field: 'tradeId'},
     {field: 'counterParty'},
     {field: 'eventDate'},
     {field: 'eventType'},
-    {field: 'cdmHashref'},
-    {field: 'lineageRef'},
+    {field: 'cdmHash'},
+    {field: 'lineageHash'},
+    {field: 'effectiveDate'},
+    {field: 'maturityDate'},
+    {field: 'dvpDate'},
+    {field: 'collateral'},
+    {field: 'amount'},
   ];
 
   onGridReady(gridReadyevent: GridReadyEvent) {

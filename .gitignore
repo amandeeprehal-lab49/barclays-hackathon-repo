@@ -24,3 +24,8 @@ build
 /frontend/node_modules
 /frontend/.angular
 .DS_Store
+
+/hardhat/node_modules
+/hardhat/artifacts
+/hardhat/cache
+/hardhat/.env
