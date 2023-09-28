@@ -5,9 +5,12 @@ import java.util.UUID;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ion.barclaysapi.client.api.TradeExecutionApiApi;
+import com.ion.barclaysapi.client.api.TradeQueryApiApi;
+import com.ion.barclaysapi.client.api.TradeSettlementApiApi;
 import com.ion.barclaysapi.client.invoker.ApiClient;
 import com.ion.barclaysapi.client.model.RepoTradeExecutionSubmissionRequest;
 import com.ion.barclaysapi.client.model.RepoTradeSubmissionResponse;
+import com.ion.barclaysapi.client.model.TradeWorkflowStatusResponse;
 import com.ion.barclaysapi.hedera.HederaFunctions;
 
 public class UseCase4Orchestrator {
@@ -61,21 +64,26 @@ public class UseCase4Orchestrator {
 
 
 
+
 	private TradeExecutionApiApi executionAPI ;
+	private TradeQueryApiApi queryAPI;
+	private TradeSettlementApiApi settlementAPI;
 	private HederaFunctions hedera;
 	
 	
 
 	public UseCase4Orchestrator() {
-		{
-			ApiClient defaultClient = new ApiClient();
-	        defaultClient.setBasePath("https://repohack2023.nayaone.com");
-	        defaultClient.setDebugging(true);
-			this.executionAPI = new TradeExecutionApiApi(defaultClient);
-		}
-		{
+			this.executionAPI = new TradeExecutionApiApi(newAPIClient());
+			this.queryAPI = new TradeQueryApiApi(newAPIClient());
+			this.settlementAPI = new TradeSettlementApiApi(newAPIClient());
 			this.hedera = new HederaFunctions()
-		}
+	}
+	
+	private static ApiClient newAPIClient() {
+		ApiClient defaultClient = new ApiClient();
+        defaultClient.setBasePath("https://repohack2023.nayaone.com");
+        defaultClient.setDebugging(true);
+        return defaultClient;
 	}
 		
 	// Read a new trade from a file	
@@ -145,6 +153,24 @@ public class UseCase4Orchestrator {
 		}
 	}
 	
+	private boolean tradeIsMatched(RepoTradeExecutionSubmissionRequest trade) throws Exception {
+
+		UUID xApiRequestId = UUID.randomUUID();
+        String xFinancialMemberId = trade.getSeller().getSellerName();
+        String tradeId = trade.getTradeId();
+
+        System.out.println("Checking trade matching status for trade: %s" + tradeId);
+        
+        TradeWorkflowStatusResponse response = queryAPI.getWorkflowEvents(
+        		xApiRequestId, 
+        		Constants.xParticipantId, 
+        		xFinancialMemberId, 
+        		Constants.xApiKey,
+        		tradeId, 
+        		"TRADE_MATCHING_SERVICE");
+        response.getTradeMatchingService().
+        System.out.println(response);
+	}
 //	
 //	
 //	
